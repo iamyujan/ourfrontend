@@ -1,26 +1,55 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
+import Routes from './Routes'
+import { Provider } from 'react-redux'
+import store from './store'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+
+export default () => {
+    return (
+        <Provider store={store}>
+            <BrowserRouter>
+                <Switch>
+                    {
+                        Routes.map((route, i) => {
+                            if (route.protected) {
+                                return <PrivateRoute key={i} {...route} />
+                            } else {
+                                return <Route key={i} {...route} />
+                            }
+                        }
+                        )
+                    }
+                </Switch>
+            </BrowserRouter>
+        </Provider>
+    )
 }
 
-export default App;
+const PrivateRoute = ({ component: Component, ...rest }) => {
+    return (
+        <Route
+            {...rest}
+            render={
+                (props) => {
+                    return (
+                        <>
+                            {
+                                localStorage.isAuth === "true" ?
+                                    <Component {...props} /> :
+                                    <Redirect
+                                        to={{
+                                            pathname: '/login',
+                                            state: { from: props.location }
+                                        }}
+                                    />
+                            }
+                        </>
+                    )
+
+                }
+            }
+        />
+    )
+}
